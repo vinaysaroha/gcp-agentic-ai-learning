@@ -528,15 +528,22 @@ locally first.
 
 #### Step 10 — Deploy the Agent to Agent Engine
 
-1. In Cloud Shell, from the agent project folder:
-   `adk deploy agent.py --display-name="fabric-incident-agent" --region=us-central1`
-2. ADK packages the agent, uploads it to Artifact Registry, and creates an Agent Engine deployment
-3. Wait for the command to return a resource name like:
+Agent Engine deployment uses the **agents-cli** tool (Google's deployment layer around ADK), not the plain `adk` command.
+
+1. In Cloud Shell, install agents-cli:
+   `pip install google-cloud-aiplatform[adk,agent_engines] agents-cli`
+2. From the agent project folder, deploy:
+   `agents-cli deploy --display-name="fabric-incident-agent" --region=us-central1 --project=wipro-fabric-data`
+3. Wait for the command to complete — it packages your agent, registers it with Agent Engine, and returns a resource name like:
    `projects/wipro-fabric-data/locations/us-central1/reasoningEngines/AGENT_ID`
-4. Copy this resource name — it is your agent's production endpoint identifier
+4. Copy this resource name — this is your agent's production endpoint identifier
 5. Go to GCP Console → **Vertex AI** → **Agent Builder** → **Deployments**
 6. Confirm your agent appears with status **Active**
 7. Click the agent → **Test** tab → run the same test queries from Step 9 against the live deployment
+
+**Note on `adk deploy cloud_run`:** If you want to host the agent on Cloud Run instead
+of Agent Engine, use `adk deploy cloud_run` from the agent folder. Cloud Run is cheaper
+for low-traffic agents; Agent Engine is better for bursty production traffic.
 
 **Why Agent Engine over Cloud Run for this agent:** This agent handles bursty incident
 traffic — zero queries at 2 AM, many simultaneous queries during a production incident.
@@ -813,7 +820,7 @@ webhook secret header inside the function to confirm the request is genuinely fr
 For each of the four agents (security, cost, compliance, orchestrator):
 
 1. In Cloud Shell, navigate to the agent folder
-2. Run: `adk deploy agent.py --display-name="AGENT_NAME" --region=us-central1`
+2. Run: `agents-cli deploy --display-name="AGENT_NAME" --region=us-central1 --project=wipro-fabric-data`
 3. Wait for the deployment to complete and note each agent's resource name
 4. Go to GCP Console → **Vertex AI** → **Agent Builder** → **Deployments**
 5. Confirm all four agents show status **Active**
@@ -1023,7 +1030,7 @@ contract — check it when things break.
 #### Step 6 — Deploy the Orchestrator to Agent Engine
 
 1. In Cloud Shell, navigate to the orchestrator folder
-2. Run: `adk deploy agent.py --display-name="a2a-ops-orchestrator" --region=us-central1`
+2. Run: `agents-cli deploy --display-name="a2a-ops-orchestrator" --region=us-central1 --project=wipro-fabric-data`
 3. Wait for deployment to complete
 4. Go to GCP Console → **Vertex AI** → **Deployments** → confirm status **Active**
 5. Note the orchestrator's invocation endpoint URL
